@@ -1,6 +1,7 @@
 require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
+require_relative '../.api_key.rb'
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5,"0")[0..4]
@@ -8,7 +9,7 @@ end
 
 def legislators_by_zipcode(zip)
   civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
-  civic_info_key = 'AIzaSyClRzDqDh5MsXwnCWi0kOiiBivP6JsSyBw'
+  civic_info_key = $API_KEY
 
   begin
     civic_info.representative_info_by_address(
