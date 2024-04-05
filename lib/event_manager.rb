@@ -9,7 +9,7 @@ end
 
 def legislators_by_zipcode(zip)
   civic_info = Google::Apis::CivicinfoV2::CivicInfoService.new
-  civic_info_key = $API_KEY
+  civic_info.key = $API_KEY
 
   begin
     civic_info.representative_info_by_address(
@@ -20,6 +20,18 @@ def legislators_by_zipcode(zip)
   rescue
     'You can find your representatives by visiting www.commoncause.org/take-action/find-elected-officials'
   end
+end
+
+def clean_phone_number(phone_number)
+  phone_number = phone_number.to_s.gsub(/\D/, '')
+  if phone_number.length == 11 and phone_number[0] == '1'
+    phone_number = phone_number[1..10]
+  elsif phone_number.length == 10
+    phone_number
+  else
+    phone_number = 'XXX-XXX-XXXX'
+  end 
+  phone_number
 end
 
 def save_thank_you_letter(id,form_letter)
@@ -48,8 +60,11 @@ contents.each do |row|
   name = row[:first_name]
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
+  phone_number = clean_phone_number(row[:homephone])
 
-  form_letter = erb_template.result(binding)
+  
 
-  save_thank_you_letter(id,form_letter)
+  # form_letter = erb_template.result(binding)
+
+  # save_thank_you_letter(id,form_letter)
 end
