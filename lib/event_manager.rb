@@ -2,6 +2,11 @@ require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
 require './api_key.rb'
+require 'time'
+
+busiest_hours = {}
+busiest_days = {}
+
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5,"0")[0..4]
@@ -44,6 +49,56 @@ def save_thank_you_letter(id,form_letter)
   end
 end
 
+def clean_time(day, time)
+  day = day.split("/")
+  time = time.split(":")
+  t = Time.new(
+    ("20#{day[2]}".to_i),
+    day[0].to_i, 
+    day[1].to_i, 
+    time[0], 
+    time[1]
+    )
+  t
+end
+
+def hour_targeting(my_hash, time_obj)
+
+  if my_hash.has_key?(time_obj.hour)
+    my_hash[time_obj.hour] += 1
+  else
+    my_hash[time_obj.hour] = 1
+  end
+  my_hash
+end
+
+def get_busiest_hours(busiest_hours)
+  result = ""
+  max = busiest_hours.values.max
+  count = busiest_hours.select { |k, v| v == max}
+  if count.length > 1
+    result = "The busiest hours where most people registered were at the hours of #{count.keys}"
+  else 
+    result = "The busiest hour most people registered at was at #{count.keys}"
+  end
+    result
+end
+
+def day_targeting(my_hash, time_obj)
+  if my_hash.has_key?(time_obj.strftime("%A"))
+    my_hash[time_obj.strftime("%A")] += 1
+  else
+    my_hash[time_obj.strftime("%A")] = 1
+  end
+  my_hash
+end
+
+def get_busiest_days(busiest_days)
+  max_key = busiest_days.max_by { |k, v| v}.first
+  max_key
+end
+
+
 puts 'EventManager initialized.'
 
 contents = CSV.open(
@@ -61,6 +116,25 @@ contents.each do |row|
   zipcode = clean_zipcode(row[:zipcode])
   legislators = legislators_by_zipcode(zipcode)
   phone_number = clean_phone_number(row[:homephone])
+  time = clean_time(row[1].split(" ")[0], row[1].split(" ")[1])
+  
+  
+  hours_most_registered = hour_targeting(busiest_hours, time)
+  days_most_registered = day_targeting(busiest_days,time)
+  # get_busiest_days(days_most_registered)
+  # p get_busiest_days
+  p get_busiest_hours(hours_most_registered)
+  
+
+  # p "Busiest day of the week is: #{busiest_day} "
+
+  
+
+
+
+  
+
+
 
   
 
@@ -68,3 +142,5 @@ contents.each do |row|
 
   # save_thank_you_letter(id,form_letter)
 end
+
+
