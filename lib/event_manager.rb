@@ -6,7 +6,8 @@ require 'time'
 
 busiest_hours = {}
 busiest_days = {}
-
+b_hour = 0
+b_day = ''
 
 def clean_zipcode(zipcode)
   zipcode.to_s.rjust(5,"0")[0..4]
@@ -63,7 +64,6 @@ def clean_time(day, time)
 end
 
 def hour_targeting(my_hash, time_obj)
-
   if my_hash.has_key?(time_obj.hour)
     my_hash[time_obj.hour] += 1
   else
@@ -72,17 +72,6 @@ def hour_targeting(my_hash, time_obj)
   my_hash
 end
 
-def get_busiest_hours(busiest_hours)
-  result = ""
-  max = busiest_hours.values.max
-  count = busiest_hours.select { |k, v| v == max}
-  if count.length > 1
-    result = "The busiest hours where most people registered were at the hours of #{count.keys}"
-  else 
-    result = "The busiest hour most people registered at was at #{count.keys}"
-  end
-    result
-end
 
 def day_targeting(my_hash, time_obj)
   if my_hash.has_key?(time_obj.strftime("%A"))
@@ -91,6 +80,11 @@ def day_targeting(my_hash, time_obj)
     my_hash[time_obj.strftime("%A")] = 1
   end
   my_hash
+end
+
+def get_busiest_hours(busiest_hours)
+  result = busiest_hours.max_by { |k, v| v}.first
+  result
 end
 
 def get_busiest_days(busiest_days)
@@ -117,30 +111,21 @@ contents.each do |row|
   legislators = legislators_by_zipcode(zipcode)
   phone_number = clean_phone_number(row[:homephone])
   time = clean_time(row[1].split(" ")[0], row[1].split(" ")[1])
-  
-  
-  hours_most_registered = hour_targeting(busiest_hours, time)
-  days_most_registered = day_targeting(busiest_days,time)
-  # get_busiest_days(days_most_registered)
-  # p get_busiest_days
-  p get_busiest_hours(hours_most_registered)
-  
 
-  # p "Busiest day of the week is: #{busiest_day} "
+  busiest_hours = hour_targeting(busiest_hours, time)  
+  b_hour = get_busiest_hours(busiest_hours)
 
-  
-
-
-
-  
-
-
-
-  
+  busiest_days = day_targeting(busiest_days, time)  
+  b_day = get_busiest_days(busiest_days)
 
   # form_letter = erb_template.result(binding)
 
   # save_thank_you_letter(id,form_letter)
 end
+
+p "The busiest hour is #{b_hour}"
+p "The busiest day is #{b_day}"
+
+
 
 
